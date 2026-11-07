@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta name="color-scheme" content="dark">
+  <title>Convite para jogar · QI FUT</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --gold: #e5b817;
+      --black: #000;
+      --white: #fff;
+      --muted: #c9c6bd;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--black);
+      color: var(--white);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    main { width: 100%; max-width: 480px; padding: 24px 0; }
+    header { text-align: center; margin-bottom: 32px; }
+    .brand { margin: 0; font-size: clamp(36px, 10vw, 52px); font-weight: 900; letter-spacing: .06em; }
+    .brand span { color: var(--gold); }
+    .eyebrow { margin: 8px 0 0; color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: .15em; }
+    .card { padding: clamp(20px, 5vw, 32px); background: #0c0c0b; border: 1px solid #62501a; border-radius: 24px; }
+    h1 { margin: 0 0 12px; font-size: clamp(24px, 6vw, 30px); line-height: 1.25; }
+    p { margin: 0 0 20px; }
+    #message { color: var(--muted); }
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 58px;
+      padding: 16px 20px;
+      border: 2px solid var(--gold);
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--black);
+      text-align: center;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .button:hover { background: #f2cb44; border-color: #f2cb44; }
+    .button:focus-visible { outline: 3px solid var(--white); outline-offset: 5px; }
+    #feedback { margin: 20px 0 0; color: var(--gold); }
+    .help { margin-top: 28px; padding-top: 24px; border-top: 1px solid #393328; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    ol { margin: 0; padding-left: 22px; color: var(--muted); font-size: 14px; }
+    li + li { margin-top: 10px; }
+    footer { margin-top: 24px; color: var(--muted); text-align: center; font-size: 12px; }
+    noscript p { padding: 16px; border: 1px solid var(--gold); border-radius: 12px; }
+    @media (max-width: 360px) { body { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="brand" aria-label="QI FUT"><span>QI</span> FUT</p>
+      <p class="eyebrow">SEU DESAFIO COMEÇA AQUI</p>
+    </header>
+    <section class="card" aria-labelledby="title">
+      <h1 id="title">Você recebeu um convite!</h1>
+      <p id="message" role="status" aria-live="polite">Preparando seu convite…</p>
+      <a id="open-invite" class="button" hidden>ABRIR CONVITE NO QI FUT</a>
+      <p id="feedback" role="status" aria-live="polite" hidden></p>
+      <noscript><p>Ative o JavaScript no navegador para verificar e abrir o convite com segurança.</p></noscript>
+      <section class="help" aria-labelledby="help-title">
+        <h2 id="help-title">O aplicativo não abriu?</h2>
+        <ol>
+          <li>Se estiver no navegador do WhatsApp, use o menu para abrir esta página no Chrome ou no navegador do celular. Depois, toque no botão novamente.</li>
+          <li>Se o navegador pedir permissão para abrir o QI FUT, confirme a abertura.</li>
+          <li>Se o QI FUT não estiver instalado, instale a versão disponibilizada pela equipe de testes e volte a este mesmo convite.</li>
+          <li>Se o aplicativo informar que o convite expirou ou que a sala já foi ocupada, peça um novo convite a quem enviou.</li>
+        </ol>
+      </section>
+    </section>
+    <footer>Esta página apenas abre o convite. A entrada na partida acontece no QI FUT.</footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const tokenPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const message = document.getElementById('message');
+      const button = document.getElementById('open-invite');
+      const feedback = document.getElementById('feedback');
+
+      function updateInvitation() {
+        button.hidden = true;
+        button.removeAttribute('href');
+        feedback.hidden = true;
+        feedback.textContent = '';
+
+        // Fragments stay in the browser: no server request or API is needed.
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const tokens = params.getAll('token');
+        if (tokens.length === 0 || (tokens.length === 1 && tokens[0] === '')) {
+          message.textContent = 'Este link está sem o token do convite. Peça que seu amigo envie o link completo novamente.';
+          return;
+        }
+        if (tokens.length !== 1 || !tokenPattern.test(tokens[0])) {
+          message.textContent = 'Este convite tem um formato inválido. Peça um novo link a quem enviou.';
+          return;
+        }
+
+        // The destination is fixed; arbitrary schemes, hosts and redirects are never accepted.
+        button.setAttribute('href', 'qifut:///challenge/' + tokens[0]);
+        button.hidden = false;
+        message.textContent = 'Toque no botão para abrir este convite no aplicativo. Se necessário, complete seu perfil para entrar na partida.';
+      }
+
+      button.addEventListener('click', () => {
+        // Navigation is performed by the link ONLY after the user's own tap.
+        // Browsers do not reliably report whether a native app is installed.
+        feedback.textContent = 'Se o QI FUT não abrir, siga as orientações abaixo. Esta página não consegue confirmar se o aplicativo está instalado.';
+        feedback.hidden = false;
+      });
+      window.addEventListener('hashchange', updateInvitation);
+      updateInvitation();
+    })();
+  </script>
+</body>
+</html>
